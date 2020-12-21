@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { login } from '../api/api';
 import SubmitButton from './SubmitButton';
 import TextInput from './TextInput';
-
+import { withRouter } from 'react-router-dom';
 
 class LoginForm extends React.Component {
   submitLogin = async (e) => {
@@ -11,7 +11,7 @@ class LoginForm extends React.Component {
     const form = e.currentTarget;
     let jwt = await login(form.elements.username.value, form.elements.password.value);
     localStorage.setItem('jwt', jwt);
-    // somehow redirect here
+    this.props.history.push('/chat');
   }
   render() {
     return (
@@ -21,8 +21,8 @@ class LoginForm extends React.Component {
           <h1 className="font-bold text-2xl tracking-wider">Login</h1>
         </header>
         <form onSubmit={this.submitLogin}>
-          <TextInput name="username" labelText="Email" />
-          <TextInput name="password" labelText="Password" />
+          <TextInput type="text" name="username" labelText="Email" />
+          <TextInput type="password" name="password" labelText="Password" />
           <div><SubmitButton buttonText="Log In" /></div>
         </form>
         <footer>
@@ -36,4 +36,4 @@ class LoginForm extends React.Component {
   }
 }
 
-export default LoginForm;
+export default withRouter(LoginForm);
