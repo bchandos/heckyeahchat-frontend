@@ -16,7 +16,7 @@ class TextInput extends React.Component {
   render() {
     return (
       <div className="relative bg-white pt-3 mb-8">
-        <label className="absolute left-1 top-2 block text-gray-300 transition-label" htmlfor={this.props.name}>{this.props.labelText}</label>
+        <label className="absolute left-1 top-2 block text-gray-300 transition-label" htmlFor={this.props.name}>{this.props.labelText}</label>
         <input
           className="w-full p-1 text-gray-700 border-b-2 border-gray-500 outline-none"
           type={this.props.type}
