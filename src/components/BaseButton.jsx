@@ -27,7 +27,9 @@ class BaseButton extends React.Component {
 
   render() {
     return (
-      <button type="submit"
+      <button
+        disabled={this.props.disabled}
+        type={this.props.type}
         onClick={this.ripple}
         className={`overflow-hidden relative transition text-xl tracking-wider shadow duration-200 w-full p-4 mb-6 rounded ${this.props.className}`}
       >
