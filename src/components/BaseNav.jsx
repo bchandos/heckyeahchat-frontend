@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 class BaseNav extends React.Component {
   constructor(props) {
@@ -9,12 +10,14 @@ class BaseNav extends React.Component {
   }
 
   showMenu = (e) => {
+    // add key listener to body
     this.setState({
       menuShowing: true
     });
   }
 
   hideMenu = (e) => {
+    // destroy key listener on body
     this.setState({
       menuShowing: false
     });
@@ -22,15 +25,17 @@ class BaseNav extends React.Component {
 
   render() {
     return (
-      <nav className="relative flex flex-wrap items-center justify-between px-2 py-3 navbar-expand-lg bg-blue-500 mb-3">
+      <nav className="relative flex flex-wrap items-center justify-between px-2 py-3 bg-blue-500 mb-3">
         {this.state.menuShowing ? (
           <div className="w-screen h-screen absolute top-0 left-0 z-10" onClick={this.hideMenu}></div>
         ) : ''}
-        <div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
+        <div className="w-full max-w-screen-xl px-4 mx-auto flex flex-wrap items-center justify-between">
           <div className="relative flex justify-between w-auto  px-4">
-            <a className="text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-no-wrap uppercase text-white" href="#pablo">
-              Heck Yeah Chat
-            </a>
+            <Link to='/'>
+              <span className="text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-no-wrap uppercase text-white">
+                Heck Yeah Chat
+              </span>
+            </Link>
           </div>
           <div className="flex flex-grow items-center" id="example-navbar-warning">
             <ul className="flex flex-row list-none ml-auto">
@@ -46,8 +51,12 @@ class BaseNav extends React.Component {
                 {this.state.menuShowing ? (
                   <div className="absolute right-1 top-1 rounded bg-gray-300 py-4 z-20">
                     <ul className="flex flex-col list-none">
-                      <li className="py-1 pl-2 pr-8 hover:bg-gray-400">Login</li>
-                      <li className="py-1 pl-2 pr-8 hover:bg-gray-400">Register</li>
+                      <Link to='/'>
+                        <li className="py-1 pl-2 pr-8 hover:bg-gray-400">Login</li>
+                      </Link>
+                      <Link to='/register'>
+                        <li className="py-1 pl-2 pr-8 hover:bg-gray-400">Register</li>
+                      </Link>
                       <li className="py-1 pl-2 pr-8 hover:bg-gray-400">About</li>
                     </ul>
                   </div>
