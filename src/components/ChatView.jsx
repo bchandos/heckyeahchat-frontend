@@ -1,4 +1,6 @@
 import React from 'react';
+import { withRouter } from 'react-router-dom';
+import { getMessages } from '../api/api';
 import ChatBubbleOther from './ChatBubbleOther';
 import ChatBubbleYou from './ChatBubbleYou';
 import SizingSlider from './SizingSlider';
@@ -10,123 +12,29 @@ class ChatView extends React.Component {
     this.state = {
       messageInput: '',
       sizePopupVisible: false,
-      messages: [
-        {
-          message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-          size: 0,
-          id: 1,
-          sender: 1,
-        },
-        {
-          message: 'Curabitur at justo a risus mattis placerat.',
-          size: 2,
-          id: 2,
-          sender: 5,
-        },
-        {
-          message: 'Mauris eu est sodales, consectetur diam sit amet, suscipit lorem.',
-          size: 0,
-          id: 3,
-          sender: 1,
-        },
-        {
-          message: 'Donec ut dui gravida, malesuada massa at, interdum arcu.',
-          size: 0,
-          id: 4,
-          sender: 5,
-        },
-        {
-          message: 'Proin interdum massa at dolor fermentum euismod.',
-          size: 0,
-          id: 5,
-          sender: 1,
-        },
-        {
-          message: 'Donec eu tortor dictum, iaculis mi in, posuere elit.',
-          size: 0,
-          id: 6,
-          sender: 5,
-        },
-        {
-          message: 'Ut sed tortor ut enim convallis vestibulum eu at purus.',
-          size: 0,
-          id: 7,
-          sender: 1,
-        },
-        {
-          message: 'Aliquam id mi semper, tristique mauris sodales, eleifend odio.',
-          size: 0,
-          id: 8,
-          sender: 5,
-        },
-        {
-          message: 'Curabitur aliquet elit non finibus blandit.',
-          size: 0,
-          id: 9,
-          sender: 1,
-        },
-        {
-          message: 'Morbi in lorem venenatis, volutpat est non, porttitor lacus.',
-          size: 0,
-          id: 99,
-          sender: 5,
-        },
-        {
-          message: 'Praesent quis ligula interdum, ultricies mi sit amet, placerat purus.',
-          size: 0,
-          id: 10,
-          sender: 1,
-        },
-        {
-          message: 'Duis tempus nisi sed dolor convallis, nec congue lectus dignissim.',
-          size: 0,
-          id: 11,
-          sender: 5,
-        },
-        {
-          message: 'Nam quis ligula condimentum, tempus risus at, vulputate sapien.',
-          size: 0,
-          id: 12,
-          sender: 1,
-        },
-        {
-          message: 'Cras a libero porta, facilisis nunc quis, ultrices nisi.',
-          size: 0,
-          id: 13,
-          sender: 5,
-        },
-        {
-          message: 'Ut euismod urna a odio consequat consequat.',
-          size: 0,
-          id: 14,
-          sender: 1,
-        },
-        {
-          message: 'Nullam non libero non ligula elementum viverra.',
-          size: 4,
-          id: 15,
-          sender: 5,
-        },
-        {
-          message: 'Duis non ligula id magna accumsan fringilla.',
-          size: 0,
-          id: 16,
-          sender: 1,
-        },
-        {
-          message: 'Donec ultrices mi non volutpat vulputate.',
-          size: 0,
-          id: 17,
-          sender: 1,
-        },
-        {
-          message: 'Nulla ac ex tincidunt, tempus justo nec, ultricies mauris.',
-          size: 2,
-          id: 18,
-          sender: 5,
-        },
-      ]
+      messages: []
     }
+  }
+
+  async componentDidMount() {
+    const messages = await getMessages(this.props.match.params.chatId);
+    this.setState({
+      messages
+    })
+    const bottomMarker = document.getElementById('bottom-marker');
+    bottomMarker.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async componentDidUpdate(prevProps) {
+    // Only requery the messages if the chatId has changed
+    if (prevProps.match.params.chatId !== this.props.match.params.chatId) {
+      const messages = await getMessages(this.props.match.params.chatId);
+      this.setState({
+        messages
+      })
+    }
+    const bottomMarker = document.getElementById('bottom-marker');
+    bottomMarker.scrollIntoView({ behavior: 'smooth' });
   }
 
   handleInput = (e) => {
@@ -154,10 +62,12 @@ class ChatView extends React.Component {
   sendMessage = (size, cb) => {
     this.setState(state => ({
       messages: [...state.messages, {
-        message: state.messageInput,
+        text: state.messageInput,
         id: Math.floor(Math.random() * 100) + 500,
-        sender: 1,
+        UserId: 1,
         size: size,
+        ConversationId: this.props.match.params.chatId,
+        sentAt: new Date(),
       }],
       messageInput: ''
     }), cb);
@@ -177,22 +87,29 @@ class ChatView extends React.Component {
     this.setState({ sizePopupVisible: false });
   }
 
-  componentDidMount() {
-    const bottomMarker = document.getElementById('bottom-marker');
-    bottomMarker.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  componentDidUpdate() {
-    const bottomMarker = document.getElementById('bottom-marker');
-    bottomMarker.scrollIntoView({ behavior: 'smooth' });
-  }
 
   render() {
     const messages = this.state.messages.map(msg => (
-      msg.sender === 1 ? (
-        <ChatBubbleYou key={msg.id} size={msg.size}>{msg.message}</ChatBubbleYou>
+      msg.UserId === 1 ? (
+        <ChatBubbleYou key={msg.id} size={msg.size}>
+          <div className="pb-2">
+            {msg.text}
+          </div>
+          <div className="flex flex-row justify-between">
+            <div className="text-xs italic">{msg.User.nickname || msg.User.email}</div>
+            <div className="text-xs italic">{new Date(msg.sentAt).toLocaleString()}</div>
+          </div>
+        </ChatBubbleYou>
       ) : (
-          <ChatBubbleOther key={msg.id} size={msg.size}>{msg.message}</ChatBubbleOther>
+          <ChatBubbleOther key={msg.id} size={msg.size}>
+            <div className="pb-2">
+              {msg.text}
+            </div>
+            <div className="flex flex-row justify-between">
+              <div className="text-xs italic">{msg.User.nickname || msg.User.email}</div>
+              <div className="text-xs italic">{new Date(msg.sentAt).toLocaleString()}</div>
+            </div>
+          </ChatBubbleOther>
         )
     ));
 
@@ -230,4 +147,4 @@ class ChatView extends React.Component {
   }
 }
 
-export default ChatView;
+export default withRouter(ChatView);

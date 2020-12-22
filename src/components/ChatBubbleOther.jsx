@@ -14,7 +14,7 @@ class ChatBubbleOther extends React.Component {
     }
     return (
       <div className="flex flex-row">
-        <div className={`shadow rounded-tl rounded-tr rounded-br px-2 py-4 m-2 bg-indigo-500 w-2/3 md:w-3/5 xl:w-1/2 ${sizeLookup[this.props.size]}`}>
+        <div className={`shadow rounded-tl rounded-tr rounded-br px-2 pt-4 pb-1 m-2 bg-indigo-500 w-2/3 md:w-3/5 xl:w-1/2 ${sizeLookup[this.props.size]}`}>
           {this.props.children}
         </div>
       </div>
