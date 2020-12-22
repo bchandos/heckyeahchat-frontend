@@ -1,14 +1,9 @@
 import React from 'react';
+import { Route, Switch, withRouter } from 'react-router-dom';
 import ChatView from './ChatView';
 import ConversationList from './ConversationList';
 
 class Chat extends React.Component {
-  /*
-    Possible states:
-      - md or higher:
-        - Menu displayed, flex basis 25%
-        
-  */
 
   constructor(props) {
     super(props);
@@ -56,7 +51,16 @@ class Chat extends React.Component {
           <ConversationList toggleMenu={this.toggleMenu} menuHidden={this.state.menuHidden} />
         </div>
         <div className="h-full bg-blue-300 flex-grow shadow-inner">
-          <ChatView toggleMenu={this.toggleMenu} menuHidden={this.state.menuHidden} />
+          <Switch>
+            <Route path={`${this.props.match.path}/:chatId`}>
+              <ChatView toggleMenu={this.toggleMenu} menuHidden={this.state.menuHidden} />
+            </Route>
+            <Route path={this.props.match.path}>
+              <div className="w-full h-full flex justify-center items-center">
+                <div className="font-semibold text-lg">Please select a conversation, or create a new one.</div>
+              </div>
+            </Route>
+          </Switch>
         </div>
 
       </div>
@@ -64,4 +68,4 @@ class Chat extends React.Component {
   }
 }
 
-export default Chat;
+export default withRouter(Chat);
