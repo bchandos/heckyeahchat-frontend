@@ -26,9 +26,9 @@ class LoginForm extends React.Component {
           <div><SubmitButton buttonText="Log In" /></div>
         </form>
         <footer>
-          <a class="text-gray-700 hover:text-pink-700 text-sm float-left" href="/password-recovery">Forgot Password?</a>
+          <a className="text-gray-700 hover:text-pink-700 text-sm float-left" href="/password-recovery">Forgot Password?</a>
           <Link to='/register'>
-            <span class="text-gray-700 hover:text-pink-700 text-sm float-right">Create Account</span>
+            <span className="text-gray-700 hover:text-pink-700 text-sm float-right">Create Account</span>
           </Link>
         </footer>
       </div>

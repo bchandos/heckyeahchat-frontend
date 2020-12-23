@@ -8,7 +8,7 @@ class RegisterForm extends React.Component {
   submitRegister = async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
-    let jwt = await registerAccount(form.elements.username.value, form.elements.password.value);
+    let jwt = await registerAccount(form.elements.username.value, form.elements.nickname.value, form.elements.password.value);
     localStorage.setItem('jwt', jwt);
     // somehow redirect here
     this.props.history.push('/');
@@ -22,12 +22,13 @@ class RegisterForm extends React.Component {
         </header>
         <form onSubmit={this.submitRegister}>
           <TextInput name="username" type="text" labelText="Email" />
+          <TextInput name="nickname" type="text" labelText="Nickname" />
           <TextInput name="password" type="password" labelText="Password" />
           <TextInput name="confirm-password" type="password" labelText="Confirm Password" />
           <SubmitButton buttonText="Register" disabled={false} />
         </form>
         <footer>
-          <a class="text-gray-700 hover:text-pink-700 text-sm" href="/password">Forgot Password?</a>
+          <a className="text-gray-700 hover:text-pink-700 text-sm" href="/password">Forgot Password?</a>
         </footer>
       </div>
     )
