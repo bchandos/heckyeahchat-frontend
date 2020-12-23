@@ -11,9 +11,9 @@ class ChatView extends React.Component {
     super(props);
     this.state = {
       messageInput: '',
-      sizePopupVisible: false,
       messages: [],
       ws: null,
+      size: 0,
     }
   }
 
@@ -27,10 +27,7 @@ class ChatView extends React.Component {
     this.setState({
       ws: new WebSocket('ws://localhost:3333')
     });
-    this.state.ws.addEventListener('message', (e) => {
-      const message = JSON.parse(e.data);
-      this.addMessage(message);
-    });
+    this.state.ws.addEventListener('message', this.addMessage);
     const bottomMarker = document.getElementById('bottom-marker');
     bottomMarker.scrollIntoView({ behavior: 'smooth' });
   }
@@ -48,15 +45,12 @@ class ChatView extends React.Component {
   }
 
   componentWillUnmount() {
-    this.state.ws.removeEventListener('message', (e) => {
-      const message = JSON.parse(e.data);
-      this.addMessage(message);
-    })
+    this.state.ws.removeEventListener('message', this.addMessage);
   }
 
-  addMessage = (message) => {
+  addMessage = (e) => {
     this.setState(state => ({
-      messages: [...state.messages, message],
+      messages: [...state.messages, JSON.parse(e.data)],
     }));
   }
 
@@ -65,59 +59,45 @@ class ChatView extends React.Component {
   }
 
   handleKeyUp = (e) => {
-    if (e.code === 'Enter' && !!this.state.messageInput) {
-      const input = e.currentTarget;
-      this.sendMessage(0, () => input.focus())
+    if (e.code === 'Enter') {
+      this.sendMessage()
     }
   }
 
   handleClick = (e) => {
-    const btnTop = e.currentTarget.getBoundingClientRect().bottom;
-    const clickY = e.clientY;
-    const clickOffset = Math.max(0, Math.floor((btnTop - clickY) / 20));
-    const input = e.currentTarget.previousSibling;
+    this.sendMessage();
+  }
+
+  sendMessage = async () => {
     if (!!this.state.messageInput) {
-      this.sendMessage(clickOffset, () => input.focus());
+      const jwt = localStorage.getItem('jwt');
+      const message = {
+        text: this.state.messageInput,
+        UserId: this.props.user.id,
+        size: this.state.size,
+        ConversationId: this.props.match.params.chatId,
+        sentAt: new Date(),
+      };
+      // Send the message over the websocket...
+      this.state.ws.send(JSON.stringify({
+        token: jwt,
+        type: 'new-message',
+        contents: message,
+      }));
+      // Reset the input
+      this.setState({
+        messageInput: '',
+      })
     }
   }
 
-  sendMessage = async (size, cb) => {
-    const jwt = localStorage.getItem('jwt');
-    const message = {
-      text: this.state.messageInput,
-      UserId: this.props.user.id,
-      size: size,
-      ConversationId: this.props.match.params.chatId,
-      sentAt: new Date(),
-    };
-    // Send the message over the websocket...
-    this.state.ws.send(JSON.stringify({
-      token: jwt,
-      type: 'new-message',
-      contents: message,
-    }));
-    // Reset the input
-    this.setState({
-      messageInput: '',
-    })
-    // Run the focus callback
-    cb();
+  updateSize = (size) => {
+    if (size) {
+      this.setState({
+        size
+      })
+    }
   }
-
-  waitForSizePopup = (e) => {
-    const popupTimeout = setTimeout(() => {
-      this.setState({ sizePopupVisible: true });
-    }, 350);
-    this.setState({
-      popupTimeout
-    })
-  }
-
-  clearTimeout = (e) => {
-    clearTimeout(this.state.popupTimeout);
-    this.setState({ sizePopupVisible: false });
-  }
-
 
   render() {
     const messages = this.state.messages.map(msg => (
@@ -164,12 +144,9 @@ class ChatView extends React.Component {
             type="text"
             className="flex-grow p-2 mr-2 bg-gray-200 rounded focus:ring-2 focus:ring-blue-400 focus:bg-white" />
           <button
-            onMouseDown={this.waitForSizePopup}
-            onMouseUp={this.clearTimeout}
-            onMouseLeave={this.clearTimeout}
             onClick={this.handleClick}
-            className="px-2 relative">
-            {this.state.sizePopupVisible ? <SizingSlider /> : <i className="material-icons cursor-pointer align-middle z-10">send</i>}
+            className="px-2 relative h-10 w-10">
+            <SizingSlider sendMessage={this.sendMessage} updateSize={this.updateSize} />
           </button>
         </div>
       </div>
