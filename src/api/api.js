@@ -1,10 +1,11 @@
 // Authorization Routes
 
-export const registerAccount = async (username, password) => {
+export const registerAccount = async (username, nickname, password) => {
   const response = await fetch('http://localhost:3333/auth/register', {
     method: 'POST',
     body: JSON.stringify({
       username,
+      nickname,
       password
     }),
     headers: {
@@ -30,6 +31,21 @@ export const login = async (username, password) => {
 
   const json = await response.json();
   return json.jwt;
+}
+
+export const checkToken = async (token) => {
+  const response = await fetch('http://localhost:3333/auth/check-token',
+    {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    });
+
+  if (response.ok) {
+    return true;
+  }
+
+  return false;
 }
 
 // Conversations
