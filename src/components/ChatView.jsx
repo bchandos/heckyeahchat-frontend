@@ -12,15 +12,25 @@ class ChatView extends React.Component {
     this.state = {
       messageInput: '',
       sizePopupVisible: false,
-      messages: []
+      messages: [],
+      ws: null,
     }
   }
 
   async componentDidMount() {
+    // Get messages
     const messages = await getMessages(this.props.match.params.chatId);
     this.setState({
       messages
-    })
+    });
+    // Connect to websocket and setup message handler
+    this.setState({
+      ws: new WebSocket('ws://localhost:3333')
+    });
+    this.state.ws.addEventListener('message', (e) => {
+      const message = JSON.parse(e.data);
+      this.addMessage(message);
+    });
     const bottomMarker = document.getElementById('bottom-marker');
     bottomMarker.scrollIntoView({ behavior: 'smooth' });
   }
@@ -35,6 +45,19 @@ class ChatView extends React.Component {
     }
     const bottomMarker = document.getElementById('bottom-marker');
     bottomMarker.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  componentWillUnmount() {
+    this.state.ws.removeEventListener('message', (e) => {
+      const message = JSON.parse(e.data);
+      this.addMessage(message);
+    })
+  }
+
+  addMessage = (message) => {
+    this.setState(state => ({
+      messages: [...state.messages, message],
+    }));
   }
 
   handleInput = (e) => {
@@ -52,25 +75,33 @@ class ChatView extends React.Component {
     const btnTop = e.currentTarget.getBoundingClientRect().bottom;
     const clickY = e.clientY;
     const clickOffset = Math.max(0, Math.floor((btnTop - clickY) / 20));
-    console.log(clickOffset);
     const input = e.currentTarget.previousSibling;
     if (!!this.state.messageInput) {
       this.sendMessage(clickOffset, () => input.focus());
     }
   }
 
-  sendMessage = (size, cb) => {
-    this.setState(state => ({
-      messages: [...state.messages, {
-        text: state.messageInput,
-        id: Math.floor(Math.random() * 100) + 500,
-        UserId: 1,
-        size: size,
-        ConversationId: this.props.match.params.chatId,
-        sentAt: new Date(),
-      }],
-      messageInput: ''
-    }), cb);
+  sendMessage = async (size, cb) => {
+    const jwt = localStorage.getItem('jwt');
+    const message = {
+      text: this.state.messageInput,
+      UserId: this.props.user.id,
+      size: size,
+      ConversationId: this.props.match.params.chatId,
+      sentAt: new Date(),
+    };
+    // Send the message over the websocket...
+    this.state.ws.send(JSON.stringify({
+      token: jwt,
+      type: 'new-message',
+      contents: message,
+    }));
+    // Reset the input
+    this.setState({
+      messageInput: '',
+    })
+    // Run the focus callback
+    cb();
   }
 
   waitForSizePopup = (e) => {
@@ -90,7 +121,7 @@ class ChatView extends React.Component {
 
   render() {
     const messages = this.state.messages.map(msg => (
-      msg.UserId === 1 ? (
+      msg.UserId === this.props.user.id ? (
         <ChatBubbleYou key={msg.id} size={msg.size}>
           <div className="pb-2">
             {msg.text}
@@ -121,12 +152,12 @@ class ChatView extends React.Component {
           ) : null}
           Chat
         </h4>
-        <div className="overflow-auto w-full flex-grow">
+        <div className="overflow-auto w-full flex-grow px-4">
           {messages}
           <div id="bottom-marker"></div>
         </div>
         <div className="w-full bg-purple-300 flex p-2 items-center shadow">
-          <input
+          <textarea
             onChange={this.handleInput}
             onKeyUp={this.handleKeyUp}
             value={this.state.messageInput}
@@ -138,8 +169,7 @@ class ChatView extends React.Component {
             onMouseLeave={this.clearTimeout}
             onClick={this.handleClick}
             className="px-2 relative">
-            <i className="material-icons cursor-pointer align-middle z-10">send</i>
-            {this.state.sizePopupVisible ? <SizingSlider /> : null}
+            {this.state.sizePopupVisible ? <SizingSlider /> : <i className="material-icons cursor-pointer align-middle z-10">send</i>}
           </button>
         </div>
       </div>
